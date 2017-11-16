@@ -1,4 +1,6 @@
 # gulp-start-SCSS-browsersync-autoprefixer
-*Для установки модулей `npm install`. 
-*Для запуска проекта `gulp` или `gulp watch`. 
-*Для сборки проекта `gulp build.`
+<ul>
+<li>Для установки модулей `npm install`. </li>
+<li>Для запуска проекта `gulp` или `gulp watch`.</li> 
+<li>Для сборки проекта `gulp build.`</li>
+</ul>
