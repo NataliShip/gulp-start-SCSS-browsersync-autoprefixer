@@ -7,8 +7,9 @@ var gulp = require('gulp'),
     cleanCSS = require('gulp-clean-css'),
     rename = require('gulp-rename'),
     autoprefixer = require('gulp-autoprefixer'),
-    notify = require("gulp-notify");
-    del = require ('del');
+    notify = require("gulp-notify"),
+    del = require ('del'),
+    babel = require('gulp-babel');
 
 // Сервер и автообновление страницы Browsersync
 gulp.task('browser-sync', function () {
@@ -25,9 +26,12 @@ gulp.task('browser-sync', function () {
 // Минификация пользовательских скриптов проекта и JS библиотек в один файл
 gulp.task('js', function () {
     return gulp.src([
-            'app/libs/jquery/dist/jquery.min.js',
-            'app/js/common.js', // Всегда в конце
+            'app/libs/**/*.js',
+            'app/js/scripts/*.js',
         ])
+		.pipe(babel({
+			presets: ['env']
+		}))
         .pipe(concat('scripts.min.js'))
         .pipe(uglify()) // Минимизировать весь js (на выбор)
         .pipe(gulp.dest('app/js'))
@@ -59,7 +63,7 @@ gulp.task('clean', function(){
 
 gulp.task('watch', ['sass', 'js', 'browser-sync'], function () {
     gulp.watch('app/scss/**/*.scss', ['sass']);
-    gulp.watch(['libs/**/*.js', 'app/js/common.js'], ['js']);
+    gulp.watch(['libs/**/*.js', 'app/js/scripts/*.js'], ['js']);
     gulp.watch('app/*.html', browserSync.reload);
 });
 
@@ -68,14 +72,14 @@ gulp.task('default', ['watch']);
 gulp.task('build', ['clean', 'sass', 'js'], function () {
 
     var buildCss = gulp.src([
-            'app/css/main.min.css',~
+            'app/css/main.min.css',
         ])
         .pipe(gulp.dest('dist/css'));
 
     var buildFonts = gulp.src('app/fonts/**/*')
         .pipe(gulp.dest('dist/fonts'));
 
-    var buildJs = gulp.src('app/js/**/*')
+    var buildJs = gulp.src('app/js/*.js')
         .pipe(gulp.dest('dist/js'));
 
     var buildHtml = gulp.src('app/*.html')
