@@ -9,7 +9,10 @@ var gulp = require('gulp'),
     autoprefixer = require('gulp-autoprefixer'),
     notify = require("gulp-notify"),
     del = require ('del'),
-    babel = require('gulp-babel');
+    babel = require('gulp-babel'),
+	imagemin = require('gulp-imagemin'),
+	pngquant = require ('imagemin-pngquant'),
+	spritesmith = require('gulp.spritesmith');
 
 // Сервер и автообновление страницы Browsersync
 gulp.task('browser-sync', function () {
@@ -61,6 +64,10 @@ gulp.task('clean', function(){
     return del.sync('dist');
 });
 
+gulp.task('sprite-clean', function () {
+	return del.sync(['app/img/sprite/*', 'app/scss/sprite.scss']);
+});
+
 gulp.task('watch', ['sass', 'js', 'browser-sync'], function () {
     gulp.watch('app/scss/**/*.scss', ['sass']);
     gulp.watch(['libs/**/*.js', 'app/js/scripts/*.js'], ['js']);
@@ -69,7 +76,33 @@ gulp.task('watch', ['sass', 'js', 'browser-sync'], function () {
 
 gulp.task('default', ['watch']);
 
-gulp.task('build', ['clean', 'sass', 'js'], function () {
+gulp.task('sprite', ['sprite-clean'] , function() {
+	var spriteData =
+		gulp.src('app/img/icons/*.*') // путь, откуда берем картинки для спрайта
+			.pipe(spritesmith({
+				imgName: 'sprite.png',
+				cssName: 'sprite.scss',
+				cssFormat: 'scss',
+				imgPath: '../img/sprite/sprite.png',
+				padding: 2
+			}));
+
+	spriteData.img.pipe(gulp.dest('app/img/sprite/')); // путь, куда сохраняем картинку
+	spriteData.css.pipe(gulp.dest('app/scss/')); // путь, куда сохраняем стили
+});
+
+gulp.task('img', function () {
+	return gulp.src(['app/img/*.*', 'app/img/sprite/*'])
+		.pipe(imagemin({
+			interlaced: true,
+			progressive: true,
+			svgoPlugins: [{removeViewBox: false}],
+			use: [pngquant()]
+		}))
+		.pipe(gulp.dest('dist/img'));
+});
+
+gulp.task('build', ['clean', 'img', 'sass', 'js'], function () {
 
     var buildCss = gulp.src([
             'app/css/main.min.css',
@@ -84,7 +117,4 @@ gulp.task('build', ['clean', 'sass', 'js'], function () {
 
     var buildHtml = gulp.src('app/*.html')
         .pipe(gulp.dest('dist'));
-
-    var buildPic = gulp.src('app/img/**/*')
-        .pipe(gulp.dest('dist/img'));
 });
